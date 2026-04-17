@@ -1,0 +1,25 @@
+{
+  "name": "crypto-toolkit",
+  "version": "1.0.0",
+  "description": "| # | Name                     | Branch | Feature |\r |---|--------------------------|--------|---------|\r | 1 | [Duy Khải nhóm trưởng] | `main` | Merge code, README, report |\r | 2 | [Quốc Hiếu]             | `...` | ... |\r | 3 | [N.Gia Huy]              | `...` | ... |\r | 4 | [T.Gia Huy]              | `...` | ... |\r | 5 | [Quốc Huy]             | `...` | ... |",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phanduykhai05/crypto-toolkit.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/phanduykhai05/crypto-toolkit/issues"
+  },
+  "homepage": "https://github.com/phanduykhai05/crypto-toolkit#readme",
+  "dependencies": {
+    "clipboardy": "^5.3.1",
+    "prompt-sync": "^4.2.0"
+  }
+}
