@@ -3,6 +3,13 @@
 import { useState } from "react";
 
 type RsaKeyType = "public" | "private";
+type ToastType = "success" | "error" | "info";
+
+type ToastItem = {
+  id: number;
+  message: string;
+  type: ToastType;
+};
 
 async function callRsaApi(payload: Record<string, unknown>) {
   const response = await fetch("/api/rsa", {
@@ -33,12 +40,25 @@ export default function Asymmetric() {
   const [decryptKey, setDecryptKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const showToast = (message: string, type: ToastType = "info") => {
+    const id = Date.now() + Math.floor(Math.random() * 1000);
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 2500);
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
+      showToast("Copied to clipboard", "success");
     } catch {
-      setError("Cannot copy to clipboard on this browser.");
+      const message = "Cannot copy to clipboard on this browser.";
+      setError(message);
+      showToast(message, "error");
     }
   };
 
@@ -52,8 +72,11 @@ export default function Asymmetric() {
       setPrivateKey(data.privateKey ?? "");
       setEncryptKey(data.publicKey ?? "");
       setDecryptKey(data.privateKey ?? "");
+      showToast("RSA key pair generated", "success");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Cannot generate keys");
+      const message = e instanceof Error ? e.message : "Cannot generate keys";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -71,8 +94,22 @@ export default function Asymmetric() {
         keyType: encryptKeyType,
       });
       setCiphertext(data.result ?? "");
+
+      const nextDecryptKeyType: RsaKeyType = encryptKeyType === "public" ? "private" : "public";
+      setDecryptKeyType(nextDecryptKeyType);
+
+      if (nextDecryptKeyType === "private" && privateKey) {
+        setDecryptKey(privateKey);
+      }
+
+      if (nextDecryptKeyType === "public" && publicKey) {
+        setDecryptKey(publicKey);
+      }
+      showToast("Encryption successful", "success");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Cannot encrypt");
+      const message = e instanceof Error ? e.message : "Cannot encrypt";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -90,8 +127,11 @@ export default function Asymmetric() {
         keyType: decryptKeyType,
       });
       setPlaintext(data.result ?? "");
+      showToast("Decryption successful", "success");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Cannot decrypt");
+      const message = e instanceof Error ? e.message : "Cannot decrypt";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -165,6 +205,40 @@ export default function Asymmetric() {
       </section>
 
       {error && <p style={{ color: "crimson" }}>{error}</p>}
+
+      <div
+        style={{
+          position: "fixed",
+          top: 16,
+          right: 16,
+          display: "grid",
+          gap: 8,
+          zIndex: 1000,
+          maxWidth: 360,
+        }}
+      >
+        {toasts.map((toast) => {
+          const backgroundColor =
+            toast.type === "success" ? "#16a34a" : toast.type === "error" ? "#dc2626" : "#2563eb";
+
+          return (
+            <div
+              key={toast.id}
+              style={{
+                color: "#fff",
+                background: backgroundColor,
+                borderRadius: 10,
+                padding: "10px 12px",
+                boxShadow: "0 8px 16px rgba(0,0,0,0.18)",
+                fontSize: 14,
+                fontWeight: 600,
+              }}
+            >
+              {toast.message}
+            </div>
+          );
+        })}
+      </div>
     </main>
   );
 }

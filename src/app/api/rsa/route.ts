@@ -4,6 +4,54 @@ import crypto from "crypto";
 type RsaAction = "generate" | "encrypt" | "decrypt";
 type RsaKeyType = "public" | "private";
 
+function normalizePemKey(input: string) {
+  return input.trim();
+}
+
+function normalizeBase64Ciphertext(input: string) {
+  return input.replace(/\s+/g, "").trim();
+}
+
+function getRsaModulusBytes(key: string) {
+  try {
+    const publicKey = crypto.createPublicKey(key);
+    const modulusLength = publicKey.asymmetricKeyDetails?.modulusLength;
+    if (modulusLength) {
+      return Math.ceil(modulusLength / 8);
+    }
+  } catch {
+    // Try private key path below.
+  }
+
+  const privateKey = crypto.createPrivateKey(key);
+  const modulusLength = privateKey.asymmetricKeyDetails?.modulusLength;
+  if (!modulusLength) {
+    throw new Error("Cannot detect RSA key size");
+  }
+
+  return Math.ceil(modulusLength / 8);
+}
+
+function getMaxPlaintextChunkSize(keyBytes: number, keyType: RsaKeyType) {
+  if (keyType === "private") {
+    // PKCS#1 v1.5 padding overhead is 11 bytes.
+    return keyBytes - 11;
+  }
+
+  // OAEP with SHA-256 overhead: 2*hashLen + 2 = 66 bytes.
+  return keyBytes - 66;
+}
+
+function splitBuffer(buffer: Buffer, chunkSize: number) {
+  const chunks: Buffer[] = [];
+
+  for (let offset = 0; offset < buffer.length; offset += chunkSize) {
+    chunks.push(buffer.subarray(offset, offset + chunkSize));
+  }
+
+  return chunks;
+}
+
 function generateRSAKeyPair() {
   const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
     modulusLength: 2048,
@@ -21,51 +69,71 @@ function generateRSAKeyPair() {
 }
 
 function encryptRSA(plaintext: string, key: string, keyType: RsaKeyType = "public") {
-  const buffer = Buffer.from(plaintext, "utf8");
+  const normalizedKey = normalizePemKey(key);
+  const plainBuffer = Buffer.from(plaintext, "utf8");
+  const keyBytes = getRsaModulusBytes(normalizedKey);
+  const maxChunkSize = getMaxPlaintextChunkSize(keyBytes, keyType);
 
-  const encryptedBuffer =
+  if (maxChunkSize <= 0) {
+    throw new Error("Invalid RSA key size or padding settings");
+  }
+
+  const plainChunks = splitBuffer(plainBuffer, maxChunkSize);
+
+  const encryptedChunks = plainChunks.map((chunk) =>
     keyType === "private"
       ? crypto.privateEncrypt(
           {
-            key,
+            key: normalizedKey,
             padding: crypto.constants.RSA_PKCS1_PADDING,
           },
-          buffer
+          chunk
         )
       : crypto.publicEncrypt(
           {
-            key,
+            key: normalizedKey,
             padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
             oaepHash: "sha256",
           },
-          buffer
-        );
+          chunk
+        )
+  );
 
-  return encryptedBuffer.toString("base64");
+  return Buffer.concat(encryptedChunks).toString("base64");
 }
 
 function decryptRSA(ciphertext: string, key: string, keyType: RsaKeyType = "private") {
-  const encryptedBuffer = Buffer.from(ciphertext, "base64");
+  const normalizedKey = normalizePemKey(key);
+  const normalizedCiphertext = normalizeBase64Ciphertext(ciphertext);
+  const encryptedBuffer = Buffer.from(normalizedCiphertext, "base64");
+  const keyBytes = getRsaModulusBytes(normalizedKey);
 
-  const decryptedBuffer =
+  if (encryptedBuffer.length === 0 || encryptedBuffer.length % keyBytes !== 0) {
+    throw new Error("Invalid ciphertext length for this RSA key");
+  }
+
+  const encryptedChunks = splitBuffer(encryptedBuffer, keyBytes);
+
+  const decryptedChunks = encryptedChunks.map((chunk) =>
     keyType === "public"
       ? crypto.publicDecrypt(
           {
-            key,
+            key: normalizedKey,
             padding: crypto.constants.RSA_PKCS1_PADDING,
           },
-          encryptedBuffer
+          chunk
         )
       : crypto.privateDecrypt(
           {
-            key,
+            key: normalizedKey,
             padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
             oaepHash: "sha256",
           },
-          encryptedBuffer
-        );
+          chunk
+        )
+  );
 
-  return decryptedBuffer.toString("utf8");
+  return Buffer.concat(decryptedChunks).toString("utf8");
 }
 
 export async function POST(req: NextRequest) {
@@ -97,7 +165,17 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing ciphertext or key" }, { status: 400 });
       }
 
-      const result = decryptRSA(body.ciphertext, body.key, body.keyType ?? "private");
+      const selectedKeyType = body.keyType ?? "private";
+
+      let result: string;
+      try {
+        result = decryptRSA(body.ciphertext, body.key, selectedKeyType);
+      } catch {
+        // Common user mistake: selected wrong key type in UI.
+        const fallbackKeyType: RsaKeyType = selectedKeyType === "private" ? "public" : "private";
+        result = decryptRSA(body.ciphertext, body.key, fallbackKeyType);
+      }
+
       return NextResponse.json({ result });
     }
 
