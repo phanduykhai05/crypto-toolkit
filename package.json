@@ -1,10 +1,13 @@
 {
   "name": "crypto-toolkit",
   "version": "1.0.0",
-  "description": "| # | Name                     | Branch | Feature |\r |---|--------------------------|--------|---------|\r | 1 | [Duy Khải nhóm trưởng] | `main` | Merge code, README, report |\r | 2 | [Quốc Hiếu]             | `...` | ... |\r | 3 | [N.Gia Huy]              | `...` | ... |\r | 4 | [T.Gia Huy]              | `...` | ... |\r | 5 | [Quốc Huy]             | `...` | ... |",
-  "main": "index.js",
+  "private": true,
+  "description": "Cryptography toolkit with Next.js UI and RSA feature",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "repository": {
     "type": "git",
@@ -13,13 +16,21 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/phanduykhai05/crypto-toolkit/issues"
   },
   "homepage": "https://github.com/phanduykhai05/crypto-toolkit#readme",
   "dependencies": {
-    "clipboardy": "^3.0.0",
-    "prompt-sync": "^4.2.0"
+    "next": "^15.3.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.2",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "eslint": "^9.25.1",
+    "eslint-config-next": "^15.3.1",
+    "typescript": "^5.8.3"
   }
 }
