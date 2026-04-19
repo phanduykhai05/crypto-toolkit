@@ -32,6 +32,9 @@ export default function Asymmetric() {
   const [privateKey, setPrivateKey] = useState("");
   const [plaintext, setPlaintext] = useState("");
   const [ciphertext, setCiphertext] = useState("");
+  const [readmeContent, setReadmeContent] = useState("");
+  const [isReadmeOpen, setIsReadmeOpen] = useState(false);
+  const [isReadmeLoading, setIsReadmeLoading] = useState(false);
 
   const [encryptKeyType, setEncryptKeyType] = useState<RsaKeyType>("public");
   const [decryptKeyType, setDecryptKeyType] = useState<RsaKeyType>("private");
@@ -137,9 +140,56 @@ export default function Asymmetric() {
     }
   };
 
+  const openReadme = async () => {
+    setIsReadmeOpen(true);
+
+    if (readmeContent || isReadmeLoading) {
+      return;
+    }
+
+    setIsReadmeLoading(true);
+
+    try {
+      const response = await fetch("/api/docs/asymmetric-readme");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Cannot load documentation");
+      }
+
+      setReadmeContent(data.content ?? "");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Cannot load documentation";
+      setError(message);
+      showToast(message, "error");
+      setReadmeContent("# Loi tai tai lieu\nVui long thu lai sau.");
+    } finally {
+      setIsReadmeLoading(false);
+    }
+  };
+
   return (
     <main style={{ maxWidth: 960, margin: "0 auto", padding: 24, display: "grid", gap: 16 }}>
       <h1>Asymmetric Encryption (RSA)</h1>
+
+      <section
+        style={{
+          border: "1px dashed #64748b",
+          borderRadius: 12,
+          padding: 12,
+          display: "grid",
+          gap: 8,
+          background: "#f8fafc",
+        }}
+      >
+        <strong>Tai lieu huong dan RSA</strong>
+        <p style={{ margin: 0, color: "#334155" }}>
+          Xem mo ta chi tiet thuat toan, luong xu ly, va huong dan su dung ngay tren web.
+        </p>
+        <button onClick={openReadme} disabled={isReadmeLoading}>
+          {isReadmeLoading ? "Dang tai tai lieu..." : "Mo tai lieu RSA"}
+        </button>
+      </section>
 
       <section style={{ display: "grid", gap: 8 }}>
         <button onClick={generateKeys} disabled={loading}>Generate RSA Key Pair</button>
@@ -239,6 +289,62 @@ export default function Asymmetric() {
           );
         })}
       </div>
+
+      {isReadmeOpen && (
+        <div
+          onClick={() => setIsReadmeOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(2, 6, 23, 0.65)",
+            zIndex: 1100,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <article
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              width: "min(980px, 100%)",
+              maxHeight: "88vh",
+              overflowY: "auto",
+              background: "#ffffff",
+              borderRadius: 14,
+              boxShadow: "0 20px 40px rgba(15, 23, 42, 0.35)",
+              padding: 20,
+              display: "grid",
+              gap: 12,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+              <h2 style={{ margin: 0 }}>Tai lieu Asymmetric RSA</h2>
+              <button onClick={() => setIsReadmeOpen(false)}>Dong</button>
+            </div>
+
+            {isReadmeLoading ? (
+              <p>Dang tai noi dung README...</p>
+            ) : (
+              <pre
+                style={{
+                  margin: 0,
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 10,
+                  padding: 14,
+                  lineHeight: 1.55,
+                  fontSize: 14,
+                }}
+              >
+                {readmeContent}
+              </pre>
+            )}
+          </article>
+        </div>
+      )}
     </main>
   );
 }
