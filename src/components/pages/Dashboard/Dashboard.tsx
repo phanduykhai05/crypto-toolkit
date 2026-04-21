@@ -1,4 +1,5 @@
 import Link from "next/link";
+import GiaHuySeedRsaRunner from "./GiaHuySeedRsaRunner";
 
 export default function Dashboard() {
   return (
@@ -30,6 +31,8 @@ export default function Dashboard() {
           <p style={descStyle}>Dang doi N23DVCN023 phat trien theo README.</p>
         </Link>
       </div>
+
+      <GiaHuySeedRsaRunner />
     </section>
   );
 }
