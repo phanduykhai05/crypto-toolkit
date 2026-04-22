@@ -18,7 +18,7 @@ export default function Dashboard() {
       >
         <Link href="/symmetric" style={cardStyle}>
           <h2 style={titleStyle}>Symmetric</h2>
-          <p style={descStyle}>Dang doi N23DVCN020 phat trien theo README.</p>
+          <p style={descStyle}>Dang hoat dong: N23DVCN020 phat trien theo README.</p>
         </Link>
 
         <Link href="/asymmetric" style={cardStyle}>
