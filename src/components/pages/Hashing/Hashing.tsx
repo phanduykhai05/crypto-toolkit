@@ -70,7 +70,8 @@ export default function Hashing() {
         <h2 style={{ margin: 0, fontSize: 18 }}>Video sinh vien N23DVCN023-N-Gia-Huy</h2>
         <p style={{ margin: 0, color: "#4b5563", fontSize: 14 }}>
           {/* Video minh hoa cac bai task Hashing (MD5 & SHA-256). */}
-          Video minh hoa cac ba tap task 1-3 PUBLIC-KEY INFRASTRUCTURE (PKI)
+          Video minh hoa cac bai tap task 1-3 PUBLIC-KEY INFRASTRUCTURE (PKI)
+          Video minh hoa cac bai task Hashing (MD5 & SHA-256).
         </p>
 
         {studentVideos.map((video) => (
