@@ -17,9 +17,9 @@ import { useState } from "react";
 import CryptoJS from "crypto-js";
 
 const studentVideos = [
-  { task: 1, title: "Task 1 - MD5" },
-  { task: 2, title: "Task 2 - SHA-256" },
-  { task: 3, title: "Task 3 - Tong hop" },
+  { task: 1, title: "Task 1: Becoming a Certificate Authority (CA)" },
+  { task: 2, title: "Task 2: Creating a Certificate for ptit.com" },
+  { task: 3, title: "Task 3: Deploying the Certificate on an HTTPS Web Server Using OpenSSL" },
 ] as const;
 
 export default function Hashing() {
@@ -37,8 +37,9 @@ export default function Hashing() {
 
   return (
     <section style={{ maxWidth: 740, display: "grid", gap: 12 }}>
-      <h1>Hashing (MD5 & SHA-256)</h1>
-
+      <h1>Cryptography Toolkit</h1>
+      <h2>(Feature 3: Hash Functions)</h2>
+      <h3>Hashing (MD5 & SHA-256)</h3>
       <input
         type="text"
         placeholder="Nhap chuoi..."
@@ -68,6 +69,8 @@ export default function Hashing() {
       >
         <h2 style={{ margin: 0, fontSize: 18 }}>Video sinh vien N23DVCN023-N-Gia-Huy</h2>
         <p style={{ margin: 0, color: "#4b5563", fontSize: 14 }}>
+          {/* Video minh hoa cac bai task Hashing (MD5 & SHA-256). */}
+          Video minh hoa cac bai tap task 1-3 PUBLIC-KEY INFRASTRUCTURE (PKI)
           Video minh hoa cac bai task Hashing (MD5 & SHA-256).
         </p>
 
